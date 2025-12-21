@@ -43,11 +43,11 @@ wheels/
 static/uploads/*
 !static/uploads/.gitkeep
 
-# Model files (large)
-model/*.h5
-model/*.keras
-model/*.weights.h5
-!model/.gitkeep
+# Model files (large) - commented out to allow pushing
+# model/*.h5
+# model/*.keras
+# model/*.weights.h5
+# !model/.gitkeep
 
 # Data files (large)
 data/embeddings_facenet.pkl
