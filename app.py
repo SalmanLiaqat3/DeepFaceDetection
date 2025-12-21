@@ -8,6 +8,11 @@ import sys
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from keras_facenet import FaceNet
+from facetracker import load_detector, detect_face
+
+
+
+
 
 # ---------------- CONFIG ----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,6 +38,30 @@ UNKNOWN_FRAMES_TO_BLOCK = 2
 # ---------------- INIT ----------------
 app = Flask(__name__)
 
+FACETRACKER_WEIGHTS = os.path.join(
+    BASE_DIR,
+    "model",
+    "facetracker_balanced.h5"
+)
+
+# Load face detector safely
+FACE_DETECTOR = None
+if os.path.exists(FACETRACKER_WEIGHTS):
+    try:
+        FACE_DETECTOR = load_detector(FACETRACKER_WEIGHTS)
+        if FACE_DETECTOR is not None:
+            print("✓ Face detector loaded successfully")
+        else:
+            print(f"✗ Face detector failed to load from {FACETRACKER_WEIGHTS}")
+    except Exception as e:
+        print(f"✗ ERROR: Failed to load face detector: {e}")
+        import traceback
+        traceback.print_exc()
+        FACE_DETECTOR = None
+else:
+    print(f"✗ WARNING: Face detector weights not found: {FACETRACKER_WEIGHTS}")
+
+
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
@@ -44,6 +73,7 @@ MEANS = {}
 if os.path.exists(EMB_PKL):
     db = pickle.load(open(EMB_PKL, "rb"))
     MEANS = db.get("mean", {})
+
 
 # ---------------- HELPERS ----------------
 def is_valid_image(img):
@@ -109,6 +139,8 @@ def recognize_image(image):
 
     return best_name, best_sim, reason, annotated
 
+    
+
 # ---------------- ROUTES ----------------
 @app.route("/", methods=["GET"])
 def index():
@@ -147,6 +179,44 @@ def add_user():
         "path": img_path,
         "count": idx,
         "note": "Add more images, then rebuild embeddings"
+    })
+
+@app.route("/detect_face", methods=["POST"])
+def detect_face_route():
+    if FACE_DETECTOR is None:
+        return jsonify({"error": "Face detector not loaded"}), 500
+
+    data = request.get_json()
+    frame_data = data.get("frame") if data else None
+
+    if not frame_data:
+        return jsonify({"detected": False})
+
+    image = base64_to_image(frame_data)
+
+    if image is None or image.size == 0:
+        return jsonify({"detected": False})
+
+    bbox, score = detect_face(FACE_DETECTOR, image)
+    annotated = image.copy()
+
+    if bbox is not None:
+        x1, y1, x2, y2 = bbox
+        cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv2.putText(
+            annotated,
+            f"Face {score:.2f}",
+            (x1, y1 - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 255, 0),
+            2
+        )
+
+    return jsonify({
+        "detected": bbox is not None,
+        "confidence": round(score, 3),
+        "image": image_to_base64(annotated)
     })
 
 # -------- ADD USER FRAME (Auto-capture endpoint) --------

@@ -355,6 +355,126 @@ async function startRecognition() {
   return runRecognition();
 }
 
+/* ---------------- FACE DETECTION CAMERA ---------------- */
+let detectStream = null;
+let detectVideo = null;
+
+/* ---------------- START DETECTION CAMERA ---------------- */
+async function startDetectionCamera() {
+  detectVideo = document.getElementById("videoDetect");
+  const box = document.getElementById("videoDetectBox");
+  if (!detectVideo) return;
+
+  // Stop any existing stream first
+  stopDetectionCamera();
+
+  if (box) box.classList.add("waiting");
+
+  detectStream = await navigator.mediaDevices.getUserMedia({ video: true });
+  detectVideo.srcObject = detectStream;
+  await detectVideo.play();
+
+  // CAMERA IS ON
+  detectVideo.classList.remove("camera-off");
+  if (box) {
+    box.classList.remove("waiting");
+    box.classList.add("active");
+  }
+}
+
+/* ---------------- STOP DETECTION CAMERA ---------------- */
+function stopDetectionCamera() {
+  const box = document.getElementById("videoDetectBox");
+
+  if (detectStream) {
+    detectStream.getTracks().forEach(track => track.stop());
+    detectStream = null;
+  }
+
+  if (detectVideo) {
+    detectVideo.srcObject = null;
+    // CAMERA OFF
+    detectVideo.classList.add("camera-off");
+  }
+
+  if (box) {
+    box.classList.remove("active");
+    box.classList.add("waiting");
+  }
+}
+
+/* ---------------- RUN FACE DETECTION ---------------- */
+async function runDeduction() {
+  const resultEl = document.getElementById("detectResult");
+  const outputImg = document.getElementById("detectOutputImg");
+  
+  resultEl.innerText = "Starting camera...";
+  
+  await startDetectionCamera();
+  
+  // Wait a moment for camera to stabilize
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  if (!detectVideo || !detectVideo.videoWidth) {
+    resultEl.innerText = "Camera not ready";
+    return;
+  }
+
+  resultEl.innerText = "Detecting face...";
+
+  // Capture single frame
+  const canvas = document.createElement("canvas");
+  canvas.width = detectVideo.videoWidth;
+  canvas.height = detectVideo.videoHeight;
+  canvas.getContext("2d").drawImage(detectVideo, 0, 0);
+  const frame = canvas.toDataURL("image/jpeg", 0.9);
+
+  // Send to backend
+  fetch("/detect_face", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ frame: frame })
+  })
+  .then(res => {
+    if (!res.ok) {
+      return res.json().then(err => {
+        throw new Error(err.error || "Request failed");
+      });
+    }
+    return res.json();
+  })
+  .then(data => {
+    if (data.error) {
+      resultEl.innerText = "Error: " + data.error;
+      return;
+    }
+
+    // Display result
+    if (data.detected) {
+      resultEl.innerText = `Face detected! Confidence: ${data.confidence.toFixed(3)}`;
+    } else {
+      resultEl.innerText = "No face detected";
+    }
+
+    // Display annotated image
+    if (outputImg && data.image) {
+      outputImg.src = data.image;
+      outputImg.style.display = "block";
+      outputImg.style.width = "100%";
+      outputImg.style.borderRadius = "10px";
+      outputImg.style.marginTop = "10px";
+    }
+
+    // Stop camera after detection
+    stopDetectionCamera();
+  })
+  .catch(err => {
+    resultEl.innerText = "Detection failed: " + err.message;
+    console.error(err);
+    stopDetectionCamera();
+  });
+}
+
 /* AUTO START - No auto-start for add user, starts on button click */
 window.onload = () => {
   // Cameras start on demand

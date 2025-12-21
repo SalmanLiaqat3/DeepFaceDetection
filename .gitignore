@@ -42,3 +42,30 @@ wheels/
 # Uploaded files
 static/uploads/*
 !static/uploads/.gitkeep
+
+# Model files (large)
+model/*.h5
+model/*.keras
+model/*.weights.h5
+!model/.gitkeep
+
+# Data files (large)
+data/embeddings_facenet.pkl
+data/faces.pkl
+data/names.pkl
+data/users/*
+!data/users/.gitkeep
+data/Attendance/*.csv
+!data/Attendance/.gitkeep
+
+# Detection results
+static/results/*.jpg
+static/results/*.png
+!static/results/.gitkeep
+
+# Training data (large)
+detection_data/
+detection_aug_data/
+
+# Test files
+test_detection.py
