@@ -58,10 +58,10 @@ static/uploads/*
 # data/Attendance/*.csv
 # !data/Attendance/.gitkeep
 
-# Detection results
-static/results/*.jpg
-static/results/*.png
-!static/results/.gitkeep
+# Detection results - commented out to allow pushing
+# static/results/*.jpg
+# static/results/*.png
+# !static/results/.gitkeep
 
 # Training data (large)
 detection_data/
