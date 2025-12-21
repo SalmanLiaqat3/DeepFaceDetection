@@ -67,5 +67,5 @@ static/results/*.png
 detection_data/
 detection_aug_data/
 
-# Test files
-test_detection.py
+# Test files - commented out to allow pushing
+# test_detection.py
