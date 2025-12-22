@@ -7,6 +7,12 @@ function showSection(id) {
   const targetSection = document.getElementById(id);
   if (targetSection) {
     targetSection.classList.add('active');
+    
+    // Clear login form when login section is shown
+    if (id === 'login' && typeof clearLoginForm === 'function') {
+      clearLoginForm();
+    }
+    
     // Update URL hash without scrolling
     if (history.pushState) {
       history.pushState(null, null, '#' + id);

@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="shortcut icon" href="/static/image/Favicon1.png" type="image/x-icon">
   <title>Face Recognition Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -32,6 +35,20 @@
         <li onclick="showSection('recognize')">Recognize</li>
       </ul>
     </li>
+    <!-- Profile Dropdown -->
+    <li class="profile-dropdown">
+      <div class="profile-icon" id="profileIcon" onclick="toggleProfileDropdown(event)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <div class="profile-dropdown-menu" id="profileDropdown">
+        <div class="profile-user-name" id="profileUserName">User</div>
+        <div class="profile-dropdown-divider"></div>
+        <button class="profile-logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </li>
   </ul>
 
   <!-- Mobile Hamburger Button -->
@@ -47,16 +64,115 @@
     <li class="mobile-nav-item" onclick="showSection('deduction'); closeMobileMenu();">Face Detection</li>
     <li class="mobile-nav-item" onclick="showSection('add'); closeMobileMenu();">Add User</li>
     <li class="mobile-nav-item" onclick="showSection('recognize'); closeMobileMenu();">Recognition / Attendance</li>
+    <li class="mobile-nav-item" onclick="logout(); closeMobileMenu();" style="color: #ff4444;">Logout</li>
   </ul>
 </nav>
 
 
 
+<!-- LOGIN/SIGNUP PAGE (Outside container for full-screen) -->
+<section id="login" class="card login-split-container">
+  <div class="login-left-section">
+    <div class="login-form-card">
+      <div class="login-user-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      
+      <div id="loginForm">
+        <div class="login-input-group">
+          <div class="login-input-wrapper">
+            <svg class="login-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input 
+              type="email" 
+              id="email" 
+              class="login-input"
+              placeholder="USERNAME"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              required
+            >
+          </div>
+        </div>
+        
+        <div class="login-input-group">
+          <div class="login-input-wrapper">
+            <svg class="login-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input 
+              type="password" 
+              id="password" 
+              class="login-input"
+              placeholder="PASSWORD"
+              autocomplete="new-password"
+              required
+            >
+          </div>
+        </div>
+        
+        <button onclick="login()" class="login-primary-btn">
+          LOGIN
+        </button>
+        
+          <div class="login-options">
+            <label class="login-remember">
+              <input type="checkbox" class="login-checkbox" id="rememberMe">
+              <span>Remember me</span>
+            </label>
+          <a href="#" class="login-forgot">Forgot your password?</a>
+        </div>
+        
+        <div class="login-divider">
+          <span>OR</span>
+        </div>
+        
+        <button onclick="googleLogin()" class="login-google-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Sign in with Google
+        </button>
+        
+        <div class="login-signup-link">
+          <span>Not a member? <a href="#" onclick="event.preventDefault(); document.getElementById('email').focus(); signup();">Sign up now</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="login-right-section">
+    <div class="login-welcome-content">
+      <h1 class="login-welcome-title">Welcome.</h1>
+      <p class="login-welcome-text">
+        Face Detection & Recognition System provides enterprise-grade face detection and recognition tools 
+        in a simple, intuitive interface. Detect, identify, and manage attendance with confidence.
+      </p>
+    </div>
+    <div class="login-background-effects">
+      <div class="login-gradient-orb login-orb-1"></div>
+      <div class="login-gradient-orb login-orb-2"></div>
+      <div class="login-gradient-orb login-orb-3"></div>
+    </div>
+  </div>
+</section>
+
 <!-- MAIN CONTAINER -->
 <div class="container">
 
   <!-- HOME PAGE -->
-  <section id="home" class="card active home-section">
+  <section id="home" class="card home-section">
     <div class="home-wrapper">
       <!-- Hero Section -->
       <div class="hero-section">
@@ -209,7 +325,7 @@
     <div class="footer-column footer-left">
       <div class="footer-logo">
         <div class="footer-logo-icon">👤</div>
-        <span class="footer-logo-text">Face Recognition System</span>
+        <span class="footer-logo-text">Face Detection & Recognition System</span>
       </div>
       <p class="footer-description">
         Secure face detection and automated attendance management system. 
@@ -236,6 +352,263 @@
     <p>&copy; 2025 Face Detection & Recognition System. All rights reserved.</p>
   </div>
 </footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+
+  // 🔐 ADD THIS
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCn7DZOrlc1YSSru4mGRf1aR0fncg2GZo4",
+    authDomain: "deep-face-detection.firebaseapp.com",
+    projectId: "deep-face-detection",
+    storageBucket: "deep-face-detection.firebasestorage.app",
+    messagingSenderId: "600256713172",
+    appId: "1:600256713172:web:f85587e142d1d5f0560641",
+    measurementId: "G-F2MJEC7SQX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+  // 🔐 Initialize Auth
+  const auth = getAuth(app);
+
+  // Clear login form fields function
+  function clearLoginForm() {
+    const emailField = document.getElementById("email");
+    const passwordField = document.getElementById("password");
+    const rememberCheckbox = document.getElementById("rememberMe");
+    
+    if (emailField) {
+      emailField.value = "";
+      emailField.blur();
+    }
+    if (passwordField) {
+      passwordField.value = "";
+      passwordField.blur();
+    }
+    if (rememberCheckbox) {
+      rememberCheckbox.checked = false;
+    }
+  }
+
+  // 2️⃣ Email + Password Signup (Valid user)
+  window.signup = function () {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        clearLoginForm();
+        alert("Account created successfully");
+        showSection("home");
+      })
+      .catch(err => {
+        clearLoginForm();
+        alert(err.message);
+      });
+  };
+
+  // 3️⃣ Email + Password Login (Validated)
+  window.login = function () {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        clearLoginForm();
+        showSection("home");
+      })
+      .catch(() => {
+        clearLoginForm();
+        alert("Invalid email or password");
+      });
+  };
+
+  // 4️⃣ Google Sign-In (One click)
+  window.googleLogin = function () {
+    const provider = new GoogleAuthProvider();
+
+    signInWithPopup(auth, provider)
+      .then(() => {
+        clearLoginForm();
+        showSection("home");
+      })
+      .catch(err => {
+        clearLoginForm();
+        alert(err.message);
+      });
+  };
+
+  // 5️⃣ Protect your pages (very important)
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      // Clear form when showing login
+      clearLoginForm();
+      // Hide all sections except login
+      document.querySelectorAll('.card').forEach(section => {
+        section.classList.remove('active');
+      });
+      const loginSection = document.getElementById('login');
+      if (loginSection) {
+        loginSection.classList.add('active');
+      }
+      // Hide profile dropdown
+      const profileDropdown = document.getElementById('profileDropdown');
+      if (profileDropdown) {
+        profileDropdown.classList.remove('active');
+      }
+    } else {
+      // User is logged in, show home and hide login
+      const loginSection = document.getElementById('login');
+      if (loginSection) {
+        loginSection.classList.remove('active');
+      }
+      // Update user name in profile dropdown
+      const userNameEl = document.getElementById('profileUserName');
+      if (userNameEl) {
+        // Get display name or email
+        const displayName = user.displayName || user.email?.split('@')[0] || 'User';
+        userNameEl.textContent = displayName;
+      }
+      // If no section is active, show home
+      const activeSection = document.querySelector('.card.active');
+      if (!activeSection || activeSection.id === 'login') {
+        showSection('home');
+      }
+    }
+  });
+
+  // 6️⃣ Logout
+  window.logout = function () {
+    signOut(auth).then(() => {
+      clearLoginForm();
+      showSection("login");
+      // Close dropdown if open
+      const profileDropdown = document.getElementById('profileDropdown');
+      if (profileDropdown) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  };
+
+  // Profile Dropdown Toggle
+  window.toggleProfileDropdown = function(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown) {
+      dropdown.classList.toggle('active');
+    }
+  };
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(event) {
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileIcon = document.getElementById('profileIcon');
+    
+    if (profileDropdown && profileIcon) {
+      const isClickInside = profileIcon.contains(event.target) || profileDropdown.contains(event.target);
+      if (!isClickInside && profileDropdown.classList.contains('active')) {
+        profileDropdown.classList.remove('active');
+      }
+    }
+  });
+
+  // Toggle navbar visibility based on login page
+  function updateNavbarVisibility() {
+    const loginSection = document.getElementById('login');
+    const navbar = document.querySelector('.navbar');
+    const footer = document.querySelector('.footer');
+    
+    if (loginSection && loginSection.classList.contains('active')) {
+      if (navbar) navbar.style.display = 'none';
+      if (footer) footer.style.display = 'none';
+      document.body.style.overflow = 'hidden';
+    } else {
+      if (navbar) navbar.style.display = '';
+      if (footer) footer.style.display = '';
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Watch for login section changes
+  const observer = new MutationObserver(updateNavbarVisibility);
+  const loginSection = document.getElementById('login');
+  if (loginSection) {
+    observer.observe(loginSection, { attributes: true, attributeFilter: ['class'] });
+  }
+  
+  // Initial check
+  updateNavbarVisibility();
+
+  // Clear form on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    clearLoginForm();
+  });
+
+  // Clear form on page unload (before navigation)
+  window.addEventListener('beforeunload', function() {
+    clearLoginForm();
+  });
+
+  // Clear form on browser back/forward navigation
+  window.addEventListener('popstate', function() {
+    clearLoginForm();
+  });
+
+  // Clear form when login section is shown (override showSection)
+  const originalShowSection = window.showSection;
+  if (typeof originalShowSection === 'function') {
+    window.showSection = function(id) {
+      if (id === 'login') {
+        clearLoginForm();
+      }
+      return originalShowSection(id);
+    };
+  } else {
+    // If showSection doesn't exist yet, wait for it
+    window.addEventListener('load', function() {
+      const originalShowSection = window.showSection;
+      if (typeof originalShowSection === 'function') {
+        window.showSection = function(id) {
+          if (id === 'login') {
+            clearLoginForm();
+          }
+          return originalShowSection(id);
+        };
+      }
+    });
+  }
+
+  // Clear form on visibility change (when tab becomes visible)
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      const loginSection = document.getElementById('login');
+      if (loginSection && loginSection.classList.contains('active')) {
+        clearLoginForm();
+      }
+    }
+  });
+
+  // Clear form immediately on page load (before DOMContentLoaded)
+  if (document.readyState === 'loading') {
+    // DOM is still loading
+  } else {
+    // DOM is already loaded
+    clearLoginForm();
+  }
+</script>
 
 <script src="/static/js/app.js"></script>
 </body>
