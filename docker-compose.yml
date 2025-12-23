@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  face-recognition-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: face-recognition-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persist data directories
+      - ./data:/app/data
+      - ./static/results:/app/static/results
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
