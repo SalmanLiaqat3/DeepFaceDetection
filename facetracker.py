@@ -17,7 +17,7 @@ MAX_BOX_AREA_RATIO = 0.6
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "model")
 
-FULL_MODEL_PATH = os.path.join(MODEL_DIR, "facetracker_balanced.keras")
+FULL_MODEL_PATH = os.path.join(MODEL_DIR, "facetracker_balanced.h5")
 WEIGHTS_PATH = os.path.join(MODEL_DIR, "facetracker_balanced.weights.h5")
 
 
@@ -69,40 +69,40 @@ def load_detector(model_path=None):
         try:
             # Try loading as full model
             model = load_model(model_path, compile=False)
-            print(f"✔ FaceTracker loaded from {model_path}")
+            print(f"[OK] FaceTracker loaded from {model_path}")
             return model
         except Exception as e:
-            print(f"⚠ Failed to load as full model from {model_path}: {e}")
+            print(f"WARNING: Failed to load as full model from {model_path}: {e}")
             # Try loading as weights only
             try:
                 model = build_model()
                 model.load_weights(model_path)
-                print(f"✔ FaceTracker loaded (weights) from {model_path}")
+                print(f"[OK] FaceTracker loaded (weights) from {model_path}")
                 return model
             except Exception as e2:
-                print(f"⚠ Failed to load as weights from {model_path}: {e2}")
+                print(f"WARNING: Failed to load as weights from {model_path}: {e2}")
                 # Continue to try default paths
 
     # 1. Full model (default paths)
     if os.path.exists(FULL_MODEL_PATH):
         try:
             model = load_model(FULL_MODEL_PATH, compile=False)
-            print("✔ FaceTracker loaded (full model)")
+            print("[OK] FaceTracker loaded (full model)")
             return model
         except Exception as e:
-            print("⚠ Failed to load full model:", e)
+            print("WARNING: Failed to load full model:", e)
 
     # 2. Weights only
     if os.path.exists(WEIGHTS_PATH):
         try:
             model = build_model()
             model.load_weights(WEIGHTS_PATH)
-            print("✔ FaceTracker loaded (weights only)")
+            print("[OK] FaceTracker loaded (weights only)")
             return model
         except Exception as e:
-            print("⚠ Failed to load weights:", e)
+            print("WARNING: Failed to load weights:", e)
 
-    print("❌ FaceTracker model not found")
+    print("WARNING: FaceTracker model not found (add model/facetracker_balanced.h5 to use VGG-16; using Haar cascade fallback for detection).")
     return None
 
 

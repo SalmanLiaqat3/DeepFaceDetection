@@ -7,12 +7,15 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   background: linear-gradient(135deg, #0f172a, #1e293b);
   min-height: 100vh;
   color: white;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* NAVBAR */
@@ -321,10 +324,43 @@ body {
   justify-content: center;
   padding-top: 40px;
   padding-bottom: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .container:has(.home-section.active) {
   padding: 40px 20px 20px;
+}
+
+/* Give dashboard room to breathe when Face Detection is active */
+.container:has(#deduction.active) {
+  width: 95%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 24px 20px 20px;
+  justify-content: flex-start;
+}
+
+/* Landing layout: detection (left) + metrics panel (right) */
+.landing-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 40px;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
+.left-panel {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .landing-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .card {
@@ -581,6 +617,382 @@ body {
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* ========== Face Detection: Two-Column Dashboard ========== */
+#deduction.deduction-page.card {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+}
+
+.deduction-page {
+  background: transparent;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+}
+
+.face-detection-block.dashboard-sidebar {
+  position: sticky;
+  top: 20px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0;
+  background: transparent;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-sidebar h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+}
+
+.dashboard-sidebar #detectResult {
+  margin: 10px 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dashboard-sidebar img {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: block;
+}
+
+.dashboard-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dashboard-main .detection-models-section {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+
+.detection-models-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.detection-models-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .detection-models-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .detection-models-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.dashboard-main .feature-card {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#deduction.active .metrics-panel,
+.dashboard-metrics {
+  display: block !important;
+}
+
+.dashboard-metrics {
+  margin-top: 0;
+  padding: 0;
+}
+
+.dashboard-metrics .metrics-card {
+  max-width: 100%;
+  background: transparent;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 1023px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .face-detection-block.dashboard-sidebar {
+    position: static;
+  }
+
+  .dashboard-main {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    gap: 1.25rem;
+  }
+
+  .face-detection-block.dashboard-sidebar {
+    padding: 1.25rem;
+  }
+
+  .dashboard-sidebar h2 {
+    font-size: 1.1rem;
+  }
+
+  .dashboard-metrics .metrics-card,
+  .deduction-main .metrics-card {
+    padding: 1rem;
+  }
+
+  .dashboard-metrics .metrics-table th,
+  .dashboard-metrics .metrics-table td,
+  .deduction-main .metrics-table th,
+  .deduction-main .metrics-table td {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .face-detection-block.dashboard-sidebar {
+    padding: 1rem;
+  }
+
+  .detection-models-title {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-metrics .metrics-table th,
+  .dashboard-metrics .metrics-table td,
+  .deduction-main .metrics-table th,
+  .deduction-main .metrics-table td {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    white-space: normal;
+  }
+}
+
+/* Face Recognition: View Attendance button */
+.attendance-today-block {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-view-attendance {
+  width: auto;
+  min-width: 180px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-view-attendance:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Attendance modal popup */
+.attendance-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.attendance-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.attendance-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.attendance-modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(30, 41, 59, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.attendance-modal-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 1.25rem 3.5rem 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attendance-modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.attendance-modal-date {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0.25rem 0 0 0;
+  width: 100%;
+}
+
+.attendance-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.attendance-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.attendance-modal-body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.attendance-modal-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.attendance-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.attendance-modal-table th,
+.attendance-modal-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.attendance-modal-table th {
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.attendance-modal-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.attendance-modal-empty {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.attendance-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-download-attendance {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-download-attendance:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .attendance-today-block {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+  }
+
+  .attendance-modal-content {
+    max-height: 90vh;
+  }
+
+  .attendance-modal-header,
+  .attendance-modal-body {
+    padding: 1rem 1.25rem;
+  }
+
+  .attendance-modal-table th,
+  .attendance-modal-table td {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+}
+
 /* Footer Styles */
 .footer {
   background: rgba(0, 0, 0, 0.4);
@@ -691,15 +1103,20 @@ input {
 .video-container {
   position: relative;
   width: 100%;
+  max-width: 100%;
   border-radius: 12px;
   overflow: hidden;
   background: linear-gradient(135deg, #1e293b, #0f172a);
   margin-bottom: 10px;
 }
 
+/* (Detection section now reuses default .card layout like recognition) */
+
 /* Webcam element */
 video {
   width: 100%;
+  max-width: 100%;
+  height: auto;
   border-radius: 12px;
   transition: filter 0.4s ease, opacity 0.4s ease;
   margin-bottom: 0;
@@ -750,6 +1167,35 @@ video.camera-off {
 /* Hide overlay when camera is ON */
 .video-container.active .video-overlay {
   opacity: 0;
+}
+
+/* Recognition result shown in the capture area (over the video) */
+.recognize-result-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.recognize-result-overlay #recognizeResultText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: center;
+}
+
+.video-container.showing-result-overlay .video-overlay {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.recognize-output-img {
+  margin-top: 12px;
 }
 
 /* Optional subtle pulse while waiting */
@@ -807,6 +1253,123 @@ img {
   height: auto;
   border-radius: 10px;
   margin-top: 10px;
+}
+
+/* Metrics table for model comparison (separate panel) */
+.metrics-panel {
+  width: 100%;
+  max-width: 1000px;       
+  margin: 40px auto 0 auto;        /* centered below detector */
+  padding: 20px;
+
+  background: none;        /* removes background */
+  box-shadow: none;        /* removes shadow */
+  border-radius: 0;        /* optional: remove rounded corners */
+
+  display: none;           
+}
+
+
+.metrics-card {
+  margin-top: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;           /* title/description above table */
+  gap: 16px;
+  max-width: 420px;
+}
+
+.metrics-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.metrics-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+}
+
+.metrics-info {
+  /* no horizontal flex sizing needed in vertical layout */
+}
+
+.metrics-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  text-align: center;
+}
+
+.metrics-table th,
+.metrics-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  word-wrap: normal;
+  white-space: nowrap;
+}
+
+.metrics-table th {
+  font-weight: 600;
+}
+
+.metrics-table td:first-child {
+  text-align: left;
+  white-space: normal;
+}
+
+/* Face Detection dashboard: table matches site dark theme */
+.dashboard-metrics .metrics-table,
+.deduction-main .metrics-table {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dashboard-metrics .metrics-table th,
+.deduction-main .metrics-table th {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.dashboard-metrics .metrics-table td,
+.deduction-main .metrics-table td {
+  color: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-metrics .metrics-table tbody tr:nth-child(even),
+.deduction-main .metrics-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dashboard-metrics .metrics-table tbody tr:nth-child(odd),
+.deduction-main .metrics-table tbody tr:nth-child(odd) {
+  background: transparent;
+}
+
+.dashboard-metrics .metrics-table tbody tr:hover,
+.deduction-main .metrics-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Stack vertically on small screens */
+@media (max-width: 900px) {
+  .metrics-card {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .metrics-info {
+    flex: 0 0 auto;
+  }
 }
 
 /* ==================== LOGIN/SIGNUP PAGE STYLES ==================== */
@@ -1355,6 +1918,12 @@ body:has(#login.card.active) .container {
 
   .container {
     padding: 20px 15px;
+    width: 100%;
+  }
+
+  .container:has(#deduction.active) {
+    width: 100%;
+    padding: 16px 15px 20px;
   }
 
   .card {
@@ -1450,6 +2019,23 @@ body:has(#login.card.active) .container {
   button {
     padding: 14px;
     font-size: 16px;
+  }
+
+  /* Keep detection layout in two columns even on tablet widths */
+  .detection-section {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .detection-layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+    column-gap: 24px;
+    row-gap: 16px;
+  }
+
+  .detection-panel {
+    max-width: 360px;
+    justify-self: end;
   }
 
   /* Login Page Responsive */
@@ -1571,6 +2157,11 @@ body:has(#login.card.active) .container {
   .container {
     padding: 15px 10px;
     padding-top: 20px;
+    width: 100%;
+  }
+
+  .container:has(#deduction.active) {
+    padding: 12px 10px 20px;
   }
 
   .card {

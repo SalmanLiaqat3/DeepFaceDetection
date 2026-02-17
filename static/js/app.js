@@ -7,12 +7,18 @@ function showSection(id) {
   const targetSection = document.getElementById(id);
   if (targetSection) {
     targetSection.classList.add('active');
+
+    // Metrics panel: show on deduction page, hide on others (panel lives inside #deduction)
+    const metricsPanel = document.querySelector('.metrics-panel');
+    if (metricsPanel) {
+      metricsPanel.style.display = id === 'deduction' ? 'block' : 'none';
+    }
     
     // Clear login form when login section is shown
     if (id === 'login' && typeof clearLoginForm === 'function') {
       clearLoginForm();
     }
-    
+
     // Update URL hash without scrolling
     if (history.pushState) {
       history.pushState(null, null, '#' + id);
@@ -516,11 +522,24 @@ function stopCamera() {
 const RUN_SECONDS = 3;
 const CAPTURE_INTERVAL = 180; // 180ms = 0.18 seconds
 
+function setRecognizeOverlay(text, visible) {
+  const overlay = document.getElementById("recognizeResultOverlay");
+  const textEl = document.getElementById("recognizeResultText");
+  const box = document.getElementById("videoRecBox");
+  if (!overlay || !textEl) return;
+  textEl.textContent = text || "";
+  overlay.style.display = visible ? "flex" : "none";
+  if (box) {
+    if (visible) box.classList.add("showing-result-overlay");
+    else box.classList.remove("showing-result-overlay");
+  }
+}
+
 function captureFrames() {
   capturedFrames = [];
 
   if (!video || !video.videoWidth) {
-    document.getElementById("result").innerText = "Camera not ready";
+    setRecognizeOverlay("Camera not ready", true);
     return;
   }
 
@@ -551,15 +570,14 @@ function captureFrames() {
 
 /* ---------------- SEND FRAMES TO BACKEND ---------------- */
 function sendFrames() {
-  const resultEl = document.getElementById("result");
   const outputImg = document.getElementById("outputImg");
 
   if (capturedFrames.length === 0) {
-    resultEl.innerText = "No frames captured";
+    setRecognizeOverlay("No frames captured", true);
     return;
   }
 
-  resultEl.innerText = "Processing...";
+  setRecognizeOverlay("Processing...", true);
 
   fetch("/recognize", {
     method: "POST",
@@ -568,22 +586,19 @@ function sendFrames() {
   })
   .then(res => res.json())
   .then(data => {
-    // Display result text
-    if (data.result && data.result !== "Unknown") {
-      resultEl.innerText = 
-        `Result: ${data.result} | Similarity: ${data.similarity.toFixed(3)} | Reason: ${data.reason}`;
-    } else {
-      resultEl.innerText = `Result: ${data.result || "Unknown"} | Reason: ${data.reason}`;
+    // Show result in the capture-area overlay (name only)
+    const name = data.result && data.result !== "Unknown" ? data.result : (data.result || "Unknown");
+    let message = "Result: " + name;
+    if (data.already_in_attendance) {
+      message += " — Already in today's attendance";
     }
+    setRecognizeOverlay(message, true);
 
-    // Display annotated image with bounding box
+    // Display annotated image with bounding box below
     if (outputImg) {
-      // Style the output image
       outputImg.style.width = "100%";
       outputImg.style.borderRadius = "10px";
       outputImg.style.marginTop = "10px";
-      
-      // Prefer saved image URL, fallback to base64
       if (data.image_url) {
         outputImg.src = data.image_url + "?t=" + new Date().getTime();
         outputImg.style.display = "block";
@@ -594,19 +609,100 @@ function sendFrames() {
     }
   })
   .catch(err => {
-    resultEl.innerText = "Recognition failed";
+    setRecognizeOverlay("Recognition failed", true);
     console.error(err);
   });
 }
 
+/* ---------------- TODAY'S ATTENDANCE (Face Recognition) — popup + download ---------------- */
+let attendanceTodayData = { date: "", entries: [] };
+
+function openAttendanceModal() {
+  const modal = document.getElementById("attendanceModal");
+  const dateEl = document.getElementById("attendanceModalDate");
+  const tbody = document.getElementById("attendanceModalTbody");
+  const emptyEl = document.getElementById("attendanceModalEmpty");
+  const tableWrap = document.getElementById("attendanceModalTableWrap");
+  if (!modal) return;
+
+  modal.classList.add("active");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  if (tbody) tbody.innerHTML = "";
+  if (emptyEl) emptyEl.style.display = "none";
+  if (tableWrap) tableWrap.style.display = "none";
+
+  fetch("/api/attendance/today")
+    .then(res => res.json())
+    .then(data => {
+      attendanceTodayData = { date: data.date || "", entries: data.entries || [] };
+      if (dateEl) dateEl.textContent = attendanceTodayData.date ? `Date: ${attendanceTodayData.date}` : "";
+      const entries = attendanceTodayData.entries;
+      if (entries.length === 0) {
+        if (emptyEl) emptyEl.style.display = "block";
+      } else {
+        if (tableWrap) tableWrap.style.display = "block";
+        tbody.innerHTML = entries
+          .map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.time)}</td></tr>`)
+          .join("");
+      }
+    })
+    .catch(() => {
+      attendanceTodayData = { date: "", entries: [] };
+      if (emptyEl) emptyEl.style.display = "block";
+    });
+}
+
+function closeAttendanceModal() {
+  const modal = document.getElementById("attendanceModal");
+  if (modal) {
+    modal.classList.remove("active");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+}
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    closeAttendanceModal();
+  }
+});
+
+function downloadAttendanceSheet() {
+  const entries = attendanceTodayData.entries;
+  const date = attendanceTodayData.date || new Date().toISOString().slice(0, 10).split("-").reverse().join("-");
+  const header = "Name,Time\n";
+  const rows = entries.map((e) => `${escapeCsv(e.name)},${escapeCsv(e.time)}`).join("\n");
+  const csv = header + rows;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Attendance_${date.replace(/\//g, "-")}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeCsv(str) {
+  if (str == null) return "";
+  const s = String(str);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 /* ---------------- MAIN RECOGNITION BUTTON ---------------- */
 async function runRecognition() {
-  const resultEl = document.getElementById("result");
-  resultEl.innerText = "Starting camera...";
-  
+  setRecognizeOverlay("Starting camera...", true);
+
   await startCamera();
-  
-  resultEl.innerText = "Capturing frames for 3 seconds...";
+
+  setRecognizeOverlay("Capturing frames for 3 seconds...", true);
   captureFrames(); // 3 seconds, every 180ms
 }
 
@@ -667,6 +763,7 @@ function stopDetectionCamera() {
 async function runDeduction() {
   const resultEl = document.getElementById("detectResult");
   const outputImg = document.getElementById("detectOutputImg");
+  const metricsPanel = document.querySelector(".metrics-panel");
   
   resultEl.innerText = "Starting camera...";
   
@@ -725,11 +822,172 @@ async function runDeduction() {
       outputImg.style.marginTop = "10px";
     }
 
+    // Update metrics table with static evaluation numbers
+    const metrics = [
+      { model: "VGG-16 Model", accuracy: "99.57%", precision: "99.79%", recall: "99.94%", meanIoU: "72.71%" },
+      { model: "Haar Cascade", accuracy: "78.20%", precision: "80.45%", recall: "82.45%", meanIoU: "72.90%" },
+      { model: "Early CNN-style", accuracy: "86.67%", precision: "87.67%", recall: "90.50%", meanIoU: "49.35%" }
+    ];
+    if (typeof updateMetricsTable === "function") {
+      updateMetricsTable(metrics);
+    }
+
+    // Reveal metrics panel after a detection run
+    if (metricsPanel) {
+      metricsPanel.style.display = "block";
+      metricsPanel.classList.add("visible");
+
+      // Smooth scroll to metrics so the user notices the comparison
+      if (typeof smoothScrollTo === "function") {
+        smoothScrollTo(metricsPanel, 20);
+      } else {
+        metricsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
     // Stop camera after detection
     stopDetectionCamera();
   })
   .catch(err => {
     resultEl.innerText = "Detection failed: " + err.message;
+    console.error(err);
+    stopDetectionCamera();
+  });
+}
+
+/* ---------------- METRICS TABLE HELPER ---------------- */
+function updateMetricsTable(metrics) {
+  const tbody = document.querySelector("#metrics-section tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = ""; // clear existing rows
+  metrics.forEach(m => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${m.model}</td>
+      <td>${m.accuracy}</td>
+      <td>${m.precision}</td>
+      <td>${m.recall}</td>
+      <td>${m.meanIoU}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+/* ---------------- RUN FACE DETECTION COMPARISON ---------------- */
+async function runDetectionComparison() {
+  const resHaar = document.getElementById("detectResultHaar");
+  const resEarly = document.getElementById("detectResultEarly");
+  const resFT = document.getElementById("detectResultFacetracker");
+  const imgHaar = document.getElementById("detectOutputImgHaar");
+  const imgEarly = document.getElementById("detectOutputImgEarly");
+  const imgFT = document.getElementById("detectOutputImgFacetracker");
+
+  if (resHaar) resHaar.innerText = "Starting camera...";
+  if (resEarly) resEarly.innerText = "";
+  if (resFT) resFT.innerText = "";
+
+  await startDetectionCamera();
+
+  // Small delay for camera to stabilize
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  if (!detectVideo || !detectVideo.videoWidth) {
+    if (resHaar) resHaar.innerText = "Camera not ready";
+    stopDetectionCamera();
+    return;
+  }
+
+  if (resHaar) resHaar.innerText = "Capturing frame and running comparison...";
+
+  // Capture single frame
+  const canvas = document.createElement("canvas");
+  canvas.width = detectVideo.videoWidth;
+  canvas.height = detectVideo.videoHeight;
+  canvas.getContext("2d").drawImage(detectVideo, 0, 0);
+  const frame = canvas.toDataURL("image/jpeg", 0.9);
+
+  fetch("/detect_face_compare", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ frame: frame })
+  })
+  .then(res => res.json())
+  .then(data => {
+    // Haarcascade
+    if (data.haar) {
+      if (resHaar) {
+        if (data.haar.detected) {
+          const c = typeof data.haar.confidence === "number"
+            ? data.haar.confidence.toFixed(3)
+            : "N/A";
+          resHaar.innerText = `Haarcascade: Face detected (conf: ${c})`;
+        } else {
+          resHaar.innerText = "Haarcascade: No face detected";
+        }
+      }
+      if (imgHaar && data.haar.image) {
+        imgHaar.src = data.haar.image;
+        imgHaar.style.display = "block";
+        imgHaar.style.width = "100%";
+        imgHaar.style.borderRadius = "10px";
+        imgHaar.style.marginTop = "10px";
+      }
+    }
+
+    // Early CNN
+    if (data.early_cnn) {
+      if (resEarly) {
+        if (!data.early_cnn.loaded) {
+          resEarly.innerText = "Early CNN: model not loaded on server";
+        } else if (data.early_cnn.detected) {
+          const c = typeof data.early_cnn.confidence === "number"
+            ? data.early_cnn.confidence.toFixed(3)
+            : "N/A";
+          resEarly.innerText = `Early CNN: Face detected (conf: ${c})`;
+        } else {
+          resEarly.innerText = "Early CNN: No face detected";
+        }
+      }
+      if (imgEarly && data.early_cnn.image) {
+        imgEarly.src = data.early_cnn.image;
+        imgEarly.style.display = "block";
+        imgEarly.style.width = "100%";
+        imgEarly.style.borderRadius = "10px";
+        imgEarly.style.marginTop = "10px";
+      }
+    }
+
+    // Facetracker
+    if (data.facetracker) {
+      if (resFT) {
+        if (!data.facetracker.loaded) {
+          resFT.innerText = "Facetracker: model not loaded on server";
+        } else if (data.facetracker.detected) {
+          const c = typeof data.facetracker.confidence === "number"
+            ? data.facetracker.confidence.toFixed(3)
+            : "N/A";
+          resFT.innerText = `Facetracker: Face detected (conf: ${c})`;
+        } else {
+          resFT.innerText = "Facetracker: No face detected";
+        }
+      }
+      if (imgFT && data.facetracker.image) {
+        imgFT.src = data.facetracker.image;
+        imgFT.style.display = "block";
+        imgFT.style.width = "100%";
+        imgFT.style.borderRadius = "10px";
+        imgFT.style.marginTop = "10px";
+      }
+    }
+
+    // Stop camera when done
+    stopDetectionCamera();
+  })
+  .catch(err => {
+    if (resHaar) {
+      resHaar.innerText = "Comparison failed: " + err.message;
+    }
     console.error(err);
     stopDetectionCamera();
   });

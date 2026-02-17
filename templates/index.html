@@ -287,41 +287,152 @@
   <!-- RECOGNITION -->
   <section id="recognize" class="card">
     <h2>Face Recognition</h2>
-    <!-- Live camera preview -->
+    <!-- Live camera preview: result shown here over the capture area -->
     <div class="video-container waiting" id="videoRecBox">
       <video id="videoRec" class="camera-off" muted playsinline></video>
-      <div class="video-overlay">
+      <div class="video-overlay" id="videoRecOverlay">
         Ready to recognize<br>
         <b>Recognize</b>
+      </div>
+      <div id="recognizeResultOverlay" class="recognize-result-overlay" aria-live="polite">
+        <span id="recognizeResultText"></span>
       </div>
     </div>
     
     <button onclick="runRecognition()">Recognize</button>
     
-    <p id="result"></p>
-    
-    <!-- Annotated result -->
-    <img id="outputImg" />
-  </section>
+    <!-- Annotated result image (optional, below) -->
+    <img id="outputImg" class="recognize-output-img" />
 
-  <!--Face Detection-->
-  <section id="deduction" class="card">
-    <h2>Face Detection</h2>
-  
-    <div class="video-container waiting" id="videoDetectBox">
-      <video id="videoDetect" class="camera-off" muted playsinline></video>
-      <div class="video-overlay">
-        Ready to detect<br>
-        <b>Detect</b>
+    <!-- Attendance (today only): button opens popup -->
+    <div class="attendance-today-block">
+      <button type="button" class="btn-view-attendance" onclick="openAttendanceModal()">View Attendance</button>
+    </div>
+
+    <!-- Attendance modal popup -->
+    <div id="attendanceModal" class="attendance-modal" aria-hidden="true">
+      <div class="attendance-modal-overlay" onclick="closeAttendanceModal()"></div>
+      <div class="attendance-modal-content">
+        <div class="attendance-modal-header">
+          <h3 class="attendance-modal-title">Attendance — Today</h3>
+          <p class="attendance-modal-date" id="attendanceModalDate"></p>
+          <button type="button" class="attendance-modal-close" onclick="closeAttendanceModal()" aria-label="Close">&times;</button>
+        </div>
+        <div class="attendance-modal-body">
+          <div id="attendanceModalTableWrap" class="attendance-modal-table-wrap">
+            <table class="attendance-modal-table" id="attendanceModalTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceModalTbody">
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+          </div>
+          <p id="attendanceModalEmpty" class="attendance-modal-empty" style="display: none;">No attendance recorded for today yet.</p>
+        </div>
+        <div class="attendance-modal-footer">
+          <button type="button" class="btn-download-attendance" onclick="downloadAttendanceSheet()">Download Attendance Sheet</button>
+        </div>
       </div>
     </div>
-  
-    <button onclick="runDeduction()">Detect</button>
-  
-    <p id="detectResult"></p>
-    <img id="detectOutputImg" />
   </section>
-  
+
+  <!-- Face Detection page: two-column dashboard (sidebar left, main right) -->
+  <div id="deduction" class="card deduction-page">
+    <div class="dashboard-grid">
+      <!-- Left column: sticky sidebar (camera / detect) -->
+      <aside class="face-detection-block dashboard-sidebar" aria-label="Face Detection">
+        <h2>Face Detection — VGG-16 Model</h2>
+        <div class="video-container waiting" id="videoDetectBox">
+          <video id="videoDetect" class="camera-off" muted playsinline></video>
+          <div class="video-overlay">
+            Ready to detect<br>
+            <b>Detect</b>
+          </div>
+        </div>
+        <button onclick="runDeduction()">Detect</button>
+        <p id="detectResult"></p>
+        <img id="detectOutputImg" />
+      </aside>
+      <!-- Right column: comparison + metrics -->
+      <div class="dashboard-main">
+        <section class="detection-models-section" aria-label="Detection models comparison">
+          <h2 class="detection-models-title">Detection Models Comparison</h2>
+          <div class="detection-models-grid">
+            <div class="feature-card">
+              <div class="feature-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              </div>
+              <h3 class="feature-card-title">VGG-16 Model</h3>
+              <p class="feature-card-description">
+                Handles more better Pose variation,Lighting effects andPose occlusion.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"/>
+                  <rect x="14" y="3" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/>
+                  <rect x="14" y="14" width="7" height="7"/>
+                </svg>
+              </div>
+              <h3 class="feature-card-title">Haar Cascade</h3>
+              <p class="feature-card-description">
+                Less accurate than VGG-16 and does not properly detect occlusions.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+                </svg>
+              </div>
+              <h3 class="feature-card-title">Early CNN-style</h3>
+              <p class="feature-card-description">
+                Does not detect faces as well as Haar cascade or VGG-16.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section class="metrics-panel dashboard-metrics">
+          <div class="metrics-card" id="metrics-section">
+            <h3 class="metrics-title">Model Evaluation Metrics</h3>
+            <p class="metrics-subtitle">
+              Comparison of detection quality across the VGG-16 model, Haar Cascade, and Early CNN-style face detector.
+            </p>
+            <div class="metrics-table-wrapper">
+              <table class="metrics-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>Mean IoU</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Filled dynamically by updateMetricsTable() -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Footer -->
