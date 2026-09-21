@@ -83,6 +83,18 @@ data/
     └── ...
 ```
 
+### Web Application Runtime Files
+These files support the live web detection and recognition workflow implemented in [`/web/app.py`](web/app.py) and [`/web/build_embeddings.py`](web/build_embeddings.py):
+
+- `web/data/embeddings_facenet.pkl`  
+  Serialized FaceNet embeddings for known users. These embeddings are used for identity matching during recognition.
+- `web/data/faces.pkl`  
+  Stored face feature vectors or processed face samples used in the recognition pipeline.
+- `web/data/names.pkl`  
+  Mapping of stored face samples to user labels/names for recognition output.
+- `web/data/haarcascade_frontalface_default.xml`  
+  Haar cascade XML file used by OpenCV to detect faces in live frames before recognition.
+
 ## Files in this Folder
 | File | Description |
 |---|---|
