@@ -1,4 +1,4 @@
-# Deep Face Detection with Augmentation-Based Training
+# Deep Face Detection with Enhanced Robustness to Variation of Pose
 
 > AI-powered deep face detection and recognition system for biometric authentication, surveillance, and smart attendance applications, built with Python, OpenCV, TensorFlow, and a robust augmentation pipeline designed to improve performance under real-world conditions.
 
