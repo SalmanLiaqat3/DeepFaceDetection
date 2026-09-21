@@ -49,6 +49,40 @@ an approach that improves robustness under these conditions.
 - **Matplotlib / Seaborn** — data visualization
 - **Google Colab** — experimentation environment (GPU-accelerated)
 
+## Data Structure
+The project keeps its image and attendance datasets in a single top-level `data` directory so analysis and deployment pipelines use the same source of truth.
+
+### Face Detection Data
+- `data/facedetection/data_before_augmentation/`  
+  Raw face images before any augmentation. This folder contains the base dataset used for initial face detection experiments, baseline evaluation, and comparison with augmented results.
+- `data/facedetection/data_after_augmentation/`  
+  Augmented face images generated after preprocessing transformations such as rotation, flipping, scaling, brightness adjustment, and other pose/lighting variations. This folder is used to improve robustness and evaluate how augmentation affects detection performance.
+
+### Face Recognition Data
+- `data/users/`  
+  User-specific face directories used for recognition model training and identity matching. Each subfolder represents a person or class, such as `Hassaan`, `Hello`, `Irfan`, `muneeb`, `Salman`, and `hand`.
+- `data/Attendance/`  
+  Attendance logs stored as CSV files with daily records of recognized users. These files are used for attendance tracking and analysis of recognition output over time.
+
+### Example Folder Layout
+```text
+data/
+├── facedetection/
+│   ├── data_before_augmentation/
+│   └── data_after_augmentation/
+├── users/
+│   ├── Hassaan/
+│   ├── Hello/
+│   ├── Irfan/
+│   ├── muneeb/
+│   ├── Salman/
+│   └── hand/
+└── Attendance/
+    ├── Attendance_14-12-2025.csv
+    ├── Attendance_15-12-2025.csv
+    └── ...
+```
+
 ## Files in this Folder
 | File | Description |
 |---|---|
